@@ -4,24 +4,32 @@ import { persist, createJSONStorage } from 'zustand/middleware';
 
 const usePlannerStore = create(
   persist(
-    (set) => ({
+    (set, get) => ({
       tasks: [],
       
-      addTask: (task) => set((state) => ({ 
-        tasks: [...state.tasks, { id: Date.now(), ...task }] 
-      })),
+      addTask: (task) => set((state) => {
+        console.log('Adding task:', task);
+        return { tasks: [...state.tasks, { id: Date.now(), ...task }] };
+      }),
 
-      toggleTask: (taskId) => set((state) => ({
-        tasks: state.tasks.map(task => 
-          task.id === taskId 
-            ? { ...task, status: task.status === 'completed' ? 'pending' : 'completed' }
-            : task
-        )
-      })),
+      removeTask: (taskId) => set((state) => {
+        console.log('Before removal - tasks:', state.tasks);
+        console.log('Removing task with ID:', taskId);
+        const newTasks = state.tasks.filter(task => task.id !== taskId);
+        console.log('After removal - tasks:', newTasks);
+        return { tasks: newTasks };
+      }),
 
-      removeTask: (taskId) => set((state) => ({
-        tasks: state.tasks.filter(task => task.id !== taskId)
-      })),
+      toggleTask: (taskId) => set((state) => {
+        console.log('Toggling task:', taskId);
+        return {
+          tasks: state.tasks.map(task => 
+            task.id === taskId 
+              ? { ...task, status: task.status === 'completed' ? 'pending' : 'completed' }
+              : task
+          )
+        };
+      }),
 
       updateTask: (taskId, updates) => set((state) => ({
         tasks: state.tasks.map(task =>
@@ -32,8 +40,8 @@ const usePlannerStore = create(
       reorderTasks: (newTasks) => set({ tasks: newTasks }),
     }),
     {
-      name: 'planner-storage', // unique name for localStorage key
-      storage: createJSONStorage(() => localStorage) // use localStorage
+      name: 'planner-storage',
+      storage: createJSONStorage(() => localStorage)
     }
   )
 );

@@ -12,18 +12,6 @@ export function DraggableTask({ task, onToggle, onRemove }) {
     transition,
   } = useSortable({ id: task.id });
 
-  const handleToggleClick = (e) => {
-    e.stopPropagation();
-    console.log('Toggle clicked for task:', task.id);
-    onToggle(task.id);
-  };
-
-  const handleRemoveClick = (e) => {
-    e.stopPropagation();
-    console.log('Remove clicked for task:', task.id);
-    onRemove(task.id);
-  };
-
   return (
     <div 
       ref={setNodeRef}
@@ -31,46 +19,40 @@ export function DraggableTask({ task, onToggle, onRemove }) {
         transform: CSS.Transform.toString(transform),
         transition
       }}
-      {...attributes}
-      {...listeners}
-      className={`
-        flex items-center justify-between p-3 rounded-lg shadow-sm border cursor-move
-        ${task.status === 'completed' 
-          ? 'bg-green-50 border-green-200' 
-          : 'bg-white border-gray-200 hover:bg-gray-50'}
-      `}
+      className="flex items-center justify-between p-3 rounded-lg shadow-sm border bg-white"
     >
-      <div className="flex items-center gap-3" onClick={e => e.stopPropagation()}>
+      {/* Draggable area */}
+      <div 
+        className="absolute inset-0 cursor-move" 
+        {...attributes} 
+        {...listeners}
+      />
+
+      {/* Content */}
+      <div className="flex items-center gap-3 relative">
         <button
           type="button"
-          onClick={handleToggleClick}
-          className={`
-            p-1 rounded-full transition-colors
-            ${task.status === 'completed' 
-              ? 'text-green-600 hover:text-green-700' 
-              : 'text-gray-400 hover:text-gray-600'}
-          `}
+          onClick={() => onToggle(task.id)}
+          className="p-1 rounded-full transition-colors hover:bg-gray-100 z-10"
         >
-          <CheckCircle2 size={20} />
+          <CheckCircle2 
+            size={20} 
+            className={task.status === 'completed' ? 'text-green-600' : 'text-gray-400'}
+          />
         </button>
-        <span className={`
-          ${task.status === 'completed' 
-            ? 'line-through text-green-700' 
-            : 'text-gray-900'} 
-          font-medium
-        `}>
+        <span className={task.status === 'completed' ? 'line-through text-gray-500' : 'text-gray-900'}>
           {task.title}
         </span>
       </div>
-      <div className="flex items-center gap-3" onClick={e => e.stopPropagation()}>
+
+      <div className="flex items-center gap-3 relative">
         <span className="text-sm text-gray-600">{task.date}</span>
         <button 
           type="button"
-          onClick={handleRemoveClick}
-          className="text-red-500 hover:text-red-700 p-1 rounded-full transition-colors"
-          title="Delete task"
+          onClick={() => onRemove(task.id)}
+          className="p-1 rounded-full transition-colors hover:bg-gray-100 z-10"
         >
-          <Trash2 size={18} />
+          <Trash2 size={18} className="text-red-500" />
         </button>
       </div>
     </div>

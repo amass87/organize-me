@@ -12,15 +12,25 @@ export function DraggableTask({ task, onToggle, onRemove }) {
     transition,
   } = useSortable({ id: task.id });
 
-  const style = {
-    transform: CSS.Transform.toString(transform),
-    transition,
+  const handleToggleClick = (e) => {
+    e.stopPropagation();
+    console.log('Toggle clicked for task:', task.id);
+    onToggle(task.id);
+  };
+
+  const handleRemoveClick = (e) => {
+    e.stopPropagation();
+    console.log('Remove clicked for task:', task.id);
+    onRemove(task.id);
   };
 
   return (
     <div 
       ref={setNodeRef}
-      style={style}
+      style={{
+        transform: CSS.Transform.toString(transform),
+        transition
+      }}
       {...attributes}
       {...listeners}
       className={`
@@ -30,9 +40,10 @@ export function DraggableTask({ task, onToggle, onRemove }) {
           : 'bg-white border-gray-200 hover:bg-gray-50'}
       `}
     >
-      <div className="flex items-center gap-3">
+      <div className="flex items-center gap-3" onClick={e => e.stopPropagation()}>
         <button
-          onClick={() => onToggle(task.id)}
+          type="button"
+          onClick={handleToggleClick}
           className={`
             p-1 rounded-full transition-colors
             ${task.status === 'completed' 
@@ -51,10 +62,11 @@ export function DraggableTask({ task, onToggle, onRemove }) {
           {task.title}
         </span>
       </div>
-      <div className="flex items-center gap-3">
+      <div className="flex items-center gap-3" onClick={e => e.stopPropagation()}>
         <span className="text-sm text-gray-600">{task.date}</span>
         <button 
-          onClick={() => onRemove(task.id)}
+          type="button"
+          onClick={handleRemoveClick}
           className="text-red-500 hover:text-red-700 p-1 rounded-full transition-colors"
           title="Delete task"
         >
