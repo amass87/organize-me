@@ -1,14 +1,12 @@
 // src/store/plannerStore.js
 import { create } from 'zustand';
-import { persist } from 'zustand/middleware';
+import { persist, createJSONStorage } from 'zustand/middleware';
 
 const usePlannerStore = create(
   persist(
     (set) => ({
       tasks: [],
-      loading: false,
-      error: null,
-
+      
       addTask: (task) => set((state) => ({ 
         tasks: [...state.tasks, { id: Date.now(), ...task }] 
       })),
@@ -34,8 +32,8 @@ const usePlannerStore = create(
       reorderTasks: (newTasks) => set({ tasks: newTasks }),
     }),
     {
-      name: 'planner-storage',
-      getStorage: () => localStorage,
+      name: 'planner-storage', // unique name for localStorage key
+      storage: createJSONStorage(() => localStorage) // use localStorage
     }
   )
 );

@@ -38,7 +38,7 @@ function DroppableDay({ day, tasks }) {
 
 export default function Calendar() {
   const [currentDate, setCurrentDate] = useState(new Date());
-  const { tasks } = usePlannerStore();
+  const tasks = usePlannerStore(state => state.tasks);
   
   const monthStart = startOfMonth(currentDate);
   const monthEnd = endOfMonth(currentDate);

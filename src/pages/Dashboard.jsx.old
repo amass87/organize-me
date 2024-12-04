@@ -1,3 +1,4 @@
+// src/pages/Dashboard.jsx
 import { useState } from 'react';
 import { ListBulletIcon, PlusIcon } from '@radix-ui/react-icons';
 import { DndContext, closestCenter } from '@dnd-kit/core';
@@ -9,12 +10,15 @@ import usePlannerStore from '../store/plannerStore';
 
 export default function Dashboard() {
   const [newTask, setNewTask] = useState('');
+  // Change how we access the store
+  const store = usePlannerStore(state => ({
   const tasks = usePlannerStore(state => state.tasks);
   const addTask = usePlannerStore(state => state.addTask);
   const toggleTask = usePlannerStore(state => state.toggleTask);
   const removeTask = usePlannerStore(state => state.removeTask);
   const updateTask = usePlannerStore(state => state.updateTask);
   const reorderTasks = usePlannerStore(state => state.reorderTasks);
+  }));
 
   const handleAddTask = (e) => {
     e.preventDefault();
@@ -28,6 +32,16 @@ export default function Dashboard() {
     setNewTask('');
   };
 
+  const handleToggleTask = (taskId) => {
+    console.log('Dashboard handleToggleTask called with:', taskId);
+    toggleTask(taskId);
+  };
+
+  const handleRemoveTask = (taskId) => {
+    console.log('Dashboard handleRemoveTask called with:', taskId);
+    removeTask(taskId);
+  };
+  
   const handleDragEnd = (event) => {
     const { active, over } = event;
     
@@ -84,8 +98,8 @@ export default function Dashboard() {
                 <DraggableTask
                   key={task.id}
                   task={task}
-                  onToggle={toggleTask}
-                  onRemove={removeTask}
+                  onToggle={handleToggleTask}
+                  onRemove={handleRemoveTask}
                 />
               ))}
             </div>
