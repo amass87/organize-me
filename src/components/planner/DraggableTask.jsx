@@ -12,6 +12,16 @@ export function DraggableTask({ task, onToggle, onRemove }) {
     transition,
   } = useSortable({ id: task.id });
 
+  const handleRemoveClick = (e) => {
+    e.stopPropagation();
+    onRemove(task.id);
+  };
+
+  const handleToggleClick = (e) => {
+    e.stopPropagation();
+    onToggle(task.id);
+  };
+
   return (
     <div 
       ref={setNodeRef}
@@ -19,21 +29,17 @@ export function DraggableTask({ task, onToggle, onRemove }) {
         transform: CSS.Transform.toString(transform),
         transition
       }}
-      className="flex items-center justify-between p-3 rounded-lg shadow-sm border bg-white"
+      className="relative flex items-center justify-between p-3 rounded-lg shadow-sm border bg-white"
     >
-      {/* Draggable area */}
-      <div 
-        className="absolute inset-0 cursor-move" 
-        {...attributes} 
-        {...listeners}
-      />
-
-      {/* Content */}
-      <div className="flex items-center gap-3 relative">
+      {/* Handle for dragging */}
+      <div className="absolute inset-0 cursor-move" {...attributes} {...listeners} />
+      
+      {/* Content - higher z-index to be clickable */}
+      <div className="relative z-10 flex items-center gap-3">
         <button
           type="button"
-          onClick={() => onToggle(task.id)}
-          className="p-1 rounded-full transition-colors hover:bg-gray-100 z-10"
+          onClick={handleToggleClick}
+          className="p-1 rounded-full transition-colors hover:bg-gray-100"
         >
           <CheckCircle2 
             size={20} 
@@ -45,12 +51,12 @@ export function DraggableTask({ task, onToggle, onRemove }) {
         </span>
       </div>
 
-      <div className="flex items-center gap-3 relative">
+      <div className="relative z-10 flex items-center gap-3">
         <span className="text-sm text-gray-600">{task.date}</span>
         <button 
           type="button"
-          onClick={() => onRemove(task.id)}
-          className="p-1 rounded-full transition-colors hover:bg-gray-100 z-10"
+          onClick={handleRemoveClick}
+          className="p-1 rounded-full transition-colors hover:bg-gray-100"
         >
           <Trash2 size={18} className="text-red-500" />
         </button>

@@ -1,5 +1,6 @@
 import { useState } from 'react';
-import { ListBulletIcon, PlusIcon } from '@radix-ui/react-icons';
+import { ListBulletIcon, PlusIcon, CalendarIcon } from '@radix-ui/react-icons';
+import { format } from 'date-fns';
 import { DndContext, closestCenter } from '@dnd-kit/core';
 import { SortableContext, verticalListSortingStrategy } from '@dnd-kit/sortable';
 import { arrayMove } from '@dnd-kit/sortable';
@@ -9,6 +10,9 @@ import usePlannerStore from '../store/plannerStore';
 
 export default function Dashboard() {
   const [newTask, setNewTask] = useState('');
+  const [selectedDate, setSelectedDate] = useState(new Date());
+  const [isDatePickerOpen, setIsDatePickerOpen] = useState(false);
+
   const tasks = usePlannerStore(state => state.tasks);
   const addTask = usePlannerStore(state => state.addTask);
   const toggleTask = usePlannerStore(state => state.toggleTask);
@@ -22,10 +26,16 @@ export default function Dashboard() {
     
     addTask({
       title: newTask,
-      date: new Date().toISOString().split('T')[0],
+      date: format(selectedDate, 'yyyy-MM-dd'),
       status: 'pending'
     });
     setNewTask('');
+    setIsDatePickerOpen(false); // Close the date picker after adding task
+  };
+
+  const handleDateSelect = (date) => {
+    setSelectedDate(date);
+    setIsDatePickerOpen(false);
   };
 
   const handleDragEnd = (event) => {
@@ -45,11 +55,14 @@ export default function Dashboard() {
     }
   };
 
+  const handleClickOutside = (e) => {
+    if (isDatePickerOpen && !e.target.closest('.date-picker-container')) {
+      setIsDatePickerOpen(false);
+    }
+  };
+
   return (
-    <DndContext
-      collisionDetection={closestCenter}
-      onDragEnd={handleDragEnd}
-    >
+    <DndContext collisionDetection={closestCenter} onDragEnd={handleDragEnd}>
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
         <div className="bg-white rounded-lg shadow p-6">
           <div className="flex items-center justify-between mb-4">
@@ -66,6 +79,14 @@ export default function Dashboard() {
                 className="flex-1 px-3 py-2 border rounded-lg"
                 placeholder="Add new task..."
               />
+              <button
+                type="button"
+                onClick={() => setIsDatePickerOpen(!isDatePickerOpen)}
+                className="px-3 py-2 border rounded-lg hover:bg-gray-50"
+                title="Select date"
+              >
+                <CalendarIcon className="w-5 h-5" />
+              </button>
               <button 
                 type="submit"
                 className="p-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600"
@@ -73,12 +94,14 @@ export default function Dashboard() {
                 <PlusIcon />
               </button>
             </div>
+            {isDatePickerOpen && (
+              <div className="absolute mt-2 bg-white border rounded-lg shadow-lg z-50">
+                <Calendar onDateSelect={handleDateSelect} />
+              </div>
+            )}
           </form>
 
-          <SortableContext
-            items={tasks.map(task => task.id)}
-            strategy={verticalListSortingStrategy}
-          >
+          <SortableContext items={tasks.map(task => task.id)} strategy={verticalListSortingStrategy}>
             <div className="space-y-3">
               {tasks.map(task => (
                 <DraggableTask
@@ -93,7 +116,7 @@ export default function Dashboard() {
         </div>
 
         <div className="bg-white rounded-lg shadow p-6">
-          <Calendar />
+          <Calendar onDateSelect={handleDateSelect} selectedDate={selectedDate} />
         </div>
       </div>
     </DndContext>
