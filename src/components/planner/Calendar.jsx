@@ -27,7 +27,7 @@ function DroppableDay({ day, tasks, onDateSelect, isSelected }) {
         {tasks.map(task => (
           <div
             key={task.id}
-            className="text-xs p-1 bg-gray-50 rounded border text-gray-700 truncate"
+            className="text-xs p-1 bg-gray-50 rounded border border-gray-200 text-gray-900" // Updated text color
             title={task.title}
           >
             {task.title}
