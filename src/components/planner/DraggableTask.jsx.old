@@ -1,9 +1,32 @@
-// src/components/planner/DraggableTask.jsx
+import { useState } from 'react';
 import { useSortable } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
-import { CheckCircle2, Trash2 } from 'lucide-react';
+import { CheckCircle2, Trash2, Flag } from 'lucide-react';
 
-export function DraggableTask({ task, onToggle, onRemove }) {
+const priorityStyles = {
+  high: {
+    indicator: 'bg-red-500',
+    border: 'border-red-200',
+    hover: 'hover:bg-red-50',
+    text: 'text-red-700',
+  },
+  medium: {
+    indicator: 'bg-yellow-500',
+    border: 'border-yellow-200',
+    hover: 'hover:bg-yellow-50',
+    text: 'text-yellow-700',
+  },
+  low: {
+    indicator: 'bg-blue-500',
+    border: 'border-blue-200',
+    hover: 'hover:bg-blue-50',
+    text: 'text-blue-700',
+  }
+};
+
+export function DraggableTask({ task, onToggle, onRemove, isHighlighted, onUpdatePriority }) {
+  const [isPriorityMenuOpen, setIsPriorityMenuOpen] = useState(false);
+  
   const {
     attributes,
     listeners,
@@ -12,17 +35,7 @@ export function DraggableTask({ task, onToggle, onRemove }) {
     transition,
   } = useSortable({ id: task.id });
 
-  const handleToggleClick = (e) => {
-    e.stopPropagation();
-    console.log('Toggle clicked for task:', task.id);
-    onToggle(task.id);
-  };
-
-  const handleRemoveClick = (e) => {
-    e.stopPropagation();
-    console.log('Remove clicked for task:', task.id);
-    onRemove(task.id);
-  };
+  const priorityStyle = priorityStyles[task.priority || 'medium'];
 
   return (
     <div 
@@ -31,46 +44,82 @@ export function DraggableTask({ task, onToggle, onRemove }) {
         transform: CSS.Transform.toString(transform),
         transition
       }}
-      {...attributes}
-      {...listeners}
       className={`
-        flex items-center justify-between p-3 rounded-lg shadow-sm border cursor-move
-        ${task.status === 'completed' 
-          ? 'bg-green-50 border-green-200' 
-          : 'bg-white border-gray-200 hover:bg-gray-50'}
+        relative flex items-center justify-between p-3 rounded-lg shadow-sm border
+        ${isHighlighted ? 'border-green-500 border-2' : 'border-gray-200'}
+        ${task.status === 'completed' ? 'bg-green-50' : 'bg-white hover:bg-gray-50'}
+        transition-all duration-200
       `}
     >
-      <div className="flex items-center gap-3" onClick={e => e.stopPropagation()}>
+      <div className="absolute inset-0 cursor-move" {...attributes} {...listeners} />
+      
+      <div className="relative z-10 flex items-center gap-3">
         <button
           type="button"
-          onClick={handleToggleClick}
-          className={`
-            p-1 rounded-full transition-colors
-            ${task.status === 'completed' 
-              ? 'text-green-600 hover:text-green-700' 
-              : 'text-gray-400 hover:text-gray-600'}
-          `}
+          onClick={(e) => {
+            e.stopPropagation();
+            onToggle(task.id);
+          }}
+          className="p-1 rounded-full transition-colors hover:bg-gray-100"
         >
-          <CheckCircle2 size={20} />
+          <CheckCircle2 
+            size={20} 
+            className={task.status === 'completed' ? 'text-green-600' : 'text-gray-400'}
+          />
         </button>
-        <span className={`
-          ${task.status === 'completed' 
-            ? 'line-through text-green-700' 
-            : 'text-gray-900'} 
-          font-medium
-        `}>
+        <div className={`w-2 h-2 rounded-full ${priorityStyle.indicator}`} />
+        <span className={task.status === 'completed' ? 'line-through text-gray-500' : 'text-gray-900'}>
           {task.title}
         </span>
       </div>
-      <div className="flex items-center gap-3" onClick={e => e.stopPropagation()}>
+
+      <div className="relative z-10 flex items-center gap-3">
         <span className="text-sm text-gray-600">{task.date}</span>
+        <div className="relative">
+          <button
+            type="button"
+            onClick={(e) => {
+              e.stopPropagation();
+              setIsPriorityMenuOpen(!isPriorityMenuOpen);
+            }}
+            className="p-1 rounded-full transition-colors hover:bg-gray-100"
+          >
+            <Flag size={18} className={priorityStyle.text} />
+          </button>
+          {isPriorityMenuOpen && (
+            <div className="absolute right-0 mt-1 bg-white border rounded-lg shadow-lg py-1 z-20 w-32">
+              {Object.keys(priorityStyles).map((priority) => (
+                <button
+                  key={priority}
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    onUpdatePriority(task.id, priority);
+                    setIsPriorityMenuOpen(false);
+                  }}
+                  className={`
+                    w-full px-4 py-2 text-left text-sm capitalize
+                    ${task.priority === priority ? 'bg-gray-100' : 'hover:bg-gray-50'}
+                    text-gray-900 bg-white
+                  `}
+                >
+                  <div className="flex items-center gap-2">
+                    <div className={`w-2 h-2 rounded-full ${priorityStyles[priority].indicator}`} />
+                    {priority}
+                  </div>
+                </button>
+              ))}
+            </div>
+          )}
+        </div>
         <button 
           type="button"
-          onClick={handleRemoveClick}
-          className="text-red-500 hover:text-red-700 p-1 rounded-full transition-colors"
-          title="Delete task"
+          onClick={(e) => {
+            e.stopPropagation();
+            onRemove(task.id);
+          }}
+          className="p-1 rounded-full transition-colors hover:bg-gray-100"
         >
-          <Trash2 size={18} />
+          <Trash2 size={18} className="text-red-500" />
         </button>
       </div>
     </div>
