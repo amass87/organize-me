@@ -1,4 +1,5 @@
-import { useState } from 'react';
+import { useState, useRef } from 'react';
+import { createPortal } from 'react-dom';
 import { useSortable } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
 import { CheckCircle2, Trash2, Flag } from 'lucide-react';
@@ -24,8 +25,40 @@ const priorityStyles = {
   }
 };
 
+const PriorityDropdown = ({ position, onSelect, onClose }) => {
+  return createPortal(
+    <>
+      <div 
+        className="fixed inset-0 z-40 bg-transparent"
+        onClick={onClose}
+      />
+      <div 
+        className="fixed z-50 bg-white rounded-lg shadow-2xl py-1 w-32"
+        style={{
+          top: `${position.y + 30}px`,
+          left: `${position.x - 40}px`,
+        }}
+      >
+        {Object.keys(priorityStyles).map((priority) => (
+          <button
+            key={priority}
+            onClick={() => onSelect(priority)}
+            className="w-full px-4 py-2 text-left text-sm capitalize hover:bg-gray-50 text-gray-900 flex items-center gap-2"
+          >
+            <div className={`w-2 h-2 rounded-full ${priorityStyles[priority].indicator}`} />
+            <span>{priority}</span>
+          </button>
+        ))}
+      </div>
+    </>,
+    document.body
+  );
+};
+
 export function DraggableTask({ task, onToggle, onRemove, isHighlighted, onUpdatePriority }) {
   const [isPriorityMenuOpen, setIsPriorityMenuOpen] = useState(false);
+  const [menuPosition, setMenuPosition] = useState({ x: 0, y: 0 });
+  const flagRef = useRef(null);
   
   const {
     attributes,
@@ -36,6 +69,18 @@ export function DraggableTask({ task, onToggle, onRemove, isHighlighted, onUpdat
   } = useSortable({ id: task.id });
 
   const priorityStyle = priorityStyles[task.priority || 'medium'];
+
+  const handlePriorityClick = (e) => {
+    e.stopPropagation();
+    const rect = flagRef.current.getBoundingClientRect();
+    setMenuPosition({ x: rect.left, y: rect.top });
+    setIsPriorityMenuOpen(true);
+  };
+
+  const handlePrioritySelect = (priority) => {
+    onUpdatePriority(task.id, priority);
+    setIsPriorityMenuOpen(false);
+  };
 
   return (
     <div 
@@ -75,58 +120,21 @@ export function DraggableTask({ task, onToggle, onRemove, isHighlighted, onUpdat
 
       <div className="relative z-10 flex items-center gap-3">
         <span className="text-sm text-gray-600">{task.date}</span>
-        <div className="relative">
-          <button
-            type="button"
-            onClick={(e) => {
-              e.stopPropagation();
-              setIsPriorityMenuOpen(!isPriorityMenuOpen);
-            }}
-            className="p-1 rounded-full transition-colors hover:bg-gray-100"
-          >
-            <Flag size={18} className={priorityStyle.text} />
-          </button>
-          {isPriorityMenuOpen && (
-              <>
-                <div 
-                  className="fixed inset-0 z-40 bg-transparent"
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    setIsPriorityMenuOpen(false);
-                  }}
-                />
-                <div 
-                  className="absolute right-0 mt-1 rounded-lg shadow-2xl py-1 z-50 w-32 transform -translate-x-8"
-                  style={{
-                    backgroundColor: '#FFFFFF',
-                    backdropFilter: 'none',
-                    WebkitBackdropFilter: 'none',
-                    border: '1px solid #E5E7EB',
-                  }}
-                >
-                  {Object.keys(priorityStyles).map((priority) => (
-                    <button
-                      key={priority}
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        onUpdatePriority(task.id, priority);
-                        setIsPriorityMenuOpen(false);
-                      }}
-                      className="w-full px-4 py-2 text-left text-sm capitalize hover:bg-gray-50 text-gray-900 flex items-center gap-2"
-                      style={{
-                        backgroundColor: '#FFFFFF',
-                        position: 'relative',
-                        zIndex: 51
-                      }}
-                    >
-                      <div className={`w-2 h-2 rounded-full ${priorityStyles[priority].indicator}`} />
-                      <span>{priority}</span>
-                    </button>
-                  ))}
-                </div>
-              </>
-            )}
-        </div>
+        <button
+          ref={flagRef}
+          type="button"
+          onClick={handlePriorityClick}
+          className="p-1 rounded-full transition-colors hover:bg-gray-100"
+        >
+          <Flag size={18} className={priorityStyle.text} />
+        </button>
+        {isPriorityMenuOpen && (
+          <PriorityDropdown
+            position={menuPosition}
+            onSelect={handlePrioritySelect}
+            onClose={() => setIsPriorityMenuOpen(false)}
+          />
+        )}
         <button 
           type="button"
           onClick={(e) => {

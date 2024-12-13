@@ -87,29 +87,45 @@ export function DraggableTask({ task, onToggle, onRemove, isHighlighted, onUpdat
             <Flag size={18} className={priorityStyle.text} />
           </button>
           {isPriorityMenuOpen && (
-            <div className="absolute right-0 mt-1 bg-white border rounded-lg shadow-lg py-1 z-20 w-32">
-              {Object.keys(priorityStyles).map((priority) => (
-                <button
-                  key={priority}
+              <>
+                <div 
+                  className="fixed inset-0 z-40 bg-transparent"
                   onClick={(e) => {
                     e.stopPropagation();
-                    onUpdatePriority(task.id, priority);
                     setIsPriorityMenuOpen(false);
                   }}
-                  className={`
-                    w-full px-4 py-2 text-left text-sm capitalize
-                    ${task.priority === priority ? 'bg-gray-100' : 'hover:bg-gray-50'}
-                    text-gray-900 bg-white
-                  `}
+                />
+                <div 
+                  className="absolute right-0 mt-1 rounded-lg shadow-2xl py-1 z-50 w-32 transform -translate-x-8"
+                  style={{
+                    backgroundColor: '#FFFFFF',
+                    backdropFilter: 'none',
+                    WebkitBackdropFilter: 'none',
+                    border: '1px solid #E5E7EB',
+                  }}
                 >
-                  <div className="flex items-center gap-2">
-                    <div className={`w-2 h-2 rounded-full ${priorityStyles[priority].indicator}`} />
-                    {priority}
-                  </div>
-                </button>
-              ))}
-            </div>
-          )}
+                  {Object.keys(priorityStyles).map((priority) => (
+                    <button
+                      key={priority}
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        onUpdatePriority(task.id, priority);
+                        setIsPriorityMenuOpen(false);
+                      }}
+                      className="w-full px-4 py-2 text-left text-sm capitalize hover:bg-gray-50 text-gray-900 flex items-center gap-2"
+                      style={{
+                        backgroundColor: '#FFFFFF',
+                        position: 'relative',
+                        zIndex: 51
+                      }}
+                    >
+                      <div className={`w-2 h-2 rounded-full ${priorityStyles[priority].indicator}`} />
+                      <span>{priority}</span>
+                    </button>
+                  ))}
+                </div>
+              </>
+            )}
         </div>
         <button 
           type="button"
