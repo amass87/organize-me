@@ -1,35 +1,37 @@
 // src/store/plannerStore.js
 import { create } from 'zustand';
-import { persist, createJSONStorage } from 'zustand/middleware';
+import { persist } from 'zustand/middleware';
 
 const usePlannerStore = create(
   persist(
-    (set, get) => ({
+    (set) => ({
       tasks: [],
       
-      addTask: (task) => set((state) => {
-        console.log('Adding task:', task);
-        return { tasks: [...state.tasks, { id: Date.now(), ...task }] };
-      }),
+      addTask: (task) => set((state) => ({ 
+        tasks: [...state.tasks, { 
+          id: Date.now(), 
+          priority: 'medium', // default priority
+          ...task 
+        }] 
+      })),
 
-      removeTask: (taskId) => set((state) => {
-        console.log('Before removal - tasks:', state.tasks);
-        console.log('Removing task with ID:', taskId);
-        const newTasks = state.tasks.filter(task => task.id !== taskId);
-        console.log('After removal - tasks:', newTasks);
-        return { tasks: newTasks };
-      }),
+      toggleTask: (taskId) => set((state) => ({
+        tasks: state.tasks.map(task => 
+          task.id === taskId 
+            ? { ...task, status: task.status === 'completed' ? 'pending' : 'completed' }
+            : task
+        )
+      })),
 
-      toggleTask: (taskId) => set((state) => {
-        console.log('Toggling task:', taskId);
-        return {
-          tasks: state.tasks.map(task => 
-            task.id === taskId 
-              ? { ...task, status: task.status === 'completed' ? 'pending' : 'completed' }
-              : task
-          )
-        };
-      }),
+      updateTaskPriority: (taskId, priority) => set((state) => ({
+        tasks: state.tasks.map(task =>
+          task.id === taskId ? { ...task, priority } : task
+        )
+      })),
+
+      removeTask: (taskId) => set((state) => ({
+        tasks: state.tasks.filter(task => task.id !== taskId)
+      })),
 
       updateTask: (taskId, updates) => set((state) => ({
         tasks: state.tasks.map(task =>
@@ -41,7 +43,6 @@ const usePlannerStore = create(
     }),
     {
       name: 'planner-storage',
-      storage: createJSONStorage(() => localStorage)
     }
   )
 );

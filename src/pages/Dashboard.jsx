@@ -1,5 +1,6 @@
+// src/pages/Dashboard.jsx
 import { useState } from 'react';
-import { ListBulletIcon, PlusIcon, CalendarIcon, ChevronDownIcon, ChevronUpIcon } from '@radix-ui/react-icons';
+import { ListBulletIcon, PlusIcon, CalendarIcon } from '@radix-ui/react-icons';
 import { format, parseISO } from 'date-fns';
 import { DndContext, closestCenter } from '@dnd-kit/core';
 import { SortableContext, verticalListSortingStrategy } from '@dnd-kit/sortable';
@@ -7,6 +8,7 @@ import { arrayMove } from '@dnd-kit/sortable';
 import { DraggableTask } from '../components/planner/DraggableTask';
 import Calendar from '../components/planner/Calendar';
 import usePlannerStore from '../store/plannerStore';
+import usePreferencesStore from '../store/preferencesStore';
 
 export default function Dashboard() {
   const [sortDirection, setSortDirection] = useState('asc');
@@ -20,6 +22,9 @@ export default function Dashboard() {
   const removeTask = usePlannerStore(state => state.removeTask);
   const updateTask = usePlannerStore(state => state.updateTask);
   const reorderTasks = usePlannerStore(state => state.reorderTasks);
+
+  const showCompletedTasks = usePreferencesStore(state => state.showCompletedTasks);
+  const groupByDate = usePreferencesStore(state => state.groupByDate);
 
   const handleAddTask = (e) => {
     e.preventDefault();
@@ -56,6 +61,7 @@ export default function Dashboard() {
     }
   };
 
+  // Filter and sort tasks
   const sortedTasks = [...tasks].sort((a, b) => {
     const dateA = parseISO(a.date);
     const dateB = parseISO(b.date);
@@ -64,9 +70,20 @@ export default function Dashboard() {
       : dateB.getTime() - dateA.getTime();
   });
 
-  const toggleSort = () => {
-    setSortDirection(prev => prev === 'asc' ? 'desc' : 'asc');
-  };
+  const filteredTasks = sortedTasks.filter(task => 
+    showCompletedTasks ? true : task.status !== 'completed'
+  );
+
+  const groupedTasks = groupByDate 
+    ? filteredTasks.reduce((groups, task) => {
+        const date = task.date;
+        if (!groups[date]) {
+          groups[date] = [];
+        }
+        groups[date].push(task);
+        return groups;
+      }, {})
+    : null;
 
   return (
     <DndContext
@@ -77,7 +94,16 @@ export default function Dashboard() {
         <div className="bg-white rounded-lg shadow p-6">
           <div className="flex items-center justify-between mb-4">
             <h2 className="text-xl font-semibold">Today's Tasks</h2>
-            <ListBulletIcon className="w-5 h-5" />
+            <div className="flex items-center gap-3">
+              <button
+                onClick={() => setSortDirection(prev => prev === 'asc' ? 'desc' : 'asc')}
+                className="flex items-center gap-1 px-3 py-1.5 text-sm text-gray-600 hover:bg-gray-100 rounded-lg border"
+                title={`Sort by date ${sortDirection === 'asc' ? 'oldest first' : 'newest first'}`}
+              >
+                <span>Sort by Date</span>
+                {sortDirection === 'asc' ? '↑' : '↓'}
+              </button>
+            </div>
           </div>
 
           <form onSubmit={handleAddTask} className="mb-4">
@@ -111,27 +137,9 @@ export default function Dashboard() {
             )}
           </form>
 
-          <div className="mb-4 flex justify-end">
-            <button
-              onClick={toggleSort}
-              className="flex items-center gap-1 px-3 py-1.5 text-sm text-gray-600 hover:bg-gray-100 rounded-lg border"
-              title={`Sort by date ${sortDirection === 'asc' ? 'oldest first' : 'newest first'}`}
-            >
-              <span>Sort by Date</span>
-              {sortDirection === 'asc' ? (
-                <ChevronUpIcon className="w-4 h-4" />
-              ) : (
-                <ChevronDownIcon className="w-4 h-4" />
-              )}
-            </button>
-          </div>
-
-          <SortableContext
-            items={sortedTasks.map(task => task.id)}
-            strategy={verticalListSortingStrategy}
-          >
+          {!groupByDate ? (
             <div className="space-y-3">
-              {sortedTasks.map(task => (
+              {filteredTasks.map(task => (
                 <DraggableTask
                   key={task.id}
                   task={task}
@@ -141,7 +149,26 @@ export default function Dashboard() {
                 />
               ))}
             </div>
-          </SortableContext>
+          ) : (
+            Object.entries(groupedTasks).map(([date, tasks]) => (
+              <div key={date} className="mb-6">
+                <h3 className="text-sm font-medium text-gray-500 mb-3">
+                  {format(parseISO(date), 'MMMM d, yyyy')}
+                </h3>
+                <div className="space-y-3">
+                  {tasks.map(task => (
+                    <DraggableTask
+                      key={task.id}
+                      task={task}
+                      onToggle={toggleTask}
+                      onRemove={removeTask}
+                      isHighlighted={task.date === format(selectedDate, 'yyyy-MM-dd')}
+                    />
+                  ))}
+                </div>
+              </div>
+            ))
+          )}
         </div>
 
         <div className="bg-white rounded-lg shadow p-6">
