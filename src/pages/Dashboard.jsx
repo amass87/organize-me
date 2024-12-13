@@ -137,6 +137,7 @@ export default function Dashboard() {
                   task={task}
                   onToggle={toggleTask}
                   onRemove={removeTask}
+                  isHighlighted={task.date === format(selectedDate, 'yyyy-MM-dd')}
                 />
               ))}
             </div>
