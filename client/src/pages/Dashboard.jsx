@@ -1,5 +1,5 @@
 // src/pages/Dashboard.jsx
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { ListBulletIcon, PlusIcon, CalendarIcon } from '@radix-ui/react-icons';
 import { format, parseISO } from 'date-fns';
 import { DndContext, closestCenter } from '@dnd-kit/core';
@@ -22,9 +22,16 @@ export default function Dashboard() {
   const removeTask = usePlannerStore(state => state.removeTask);
   const updateTask = usePlannerStore(state => state.updateTask);
   const reorderTasks = usePlannerStore(state => state.reorderTasks);
+  const fetchTasks = usePlannerStore(state => state.fetchTasks);
+  const loading = usePlannerStore(state => state.loading);
+  const error = usePlannerStore(state => state.error);
 
   const showCompletedTasks = usePreferencesStore(state => state.showCompletedTasks);
   const groupByDate = usePreferencesStore(state => state.groupByDate);
+
+  useEffect(() => {
+    fetchTasks();
+  }, [fetchTasks]);
 
   const handleAddTask = (e) => {
     e.preventDefault();
@@ -105,6 +112,18 @@ export default function Dashboard() {
               </button>
             </div>
           </div>
+
+          {loading && (
+            <div className="flex justify-center p-4">
+              <div className="text-gray-500">Loading tasks...</div>
+            </div>
+          )}
+          
+          {error && (
+            <div className="flex justify-center p-4">
+              <div className="text-red-500">Error: {error}</div>
+            </div>
+          )}
 
           <form onSubmit={handleAddTask} className="mb-4">
             <div className="flex gap-2">
