@@ -4,13 +4,13 @@ import { format, startOfMonth, endOfMonth, eachDayOfInterval, isToday } from 'da
 import { useDroppable } from '@dnd-kit/core';
 import usePlannerStore from '../../store/plannerStore';
 
-function DroppableDay({ day, tasks, onDateSelect, isSelected }) {
+function DroppableDay({ day, tasks = [], onDateSelect, isSelected }) {
   const { setNodeRef, isOver } = useDroppable({
     id: format(day, 'yyyy-MM-dd'),
   });
 
   const formattedDate = format(day, 'yyyy-MM-dd');
-  const dayTasks = tasks.filter(task => task.date === formattedDate);
+  const dayTasks = Array.isArray(tasks) ? tasks.filter(task => task.date === formattedDate) : [];
 
   return (
     <div
@@ -46,7 +46,7 @@ function DroppableDay({ day, tasks, onDateSelect, isSelected }) {
 
 export default function Calendar({ onDateSelect, selectedDate }) {
   const [currentDate, setCurrentDate] = useState(new Date());
-  const tasks = usePlannerStore(state => state.tasks);
+  const tasks = usePlannerStore(state => state.tasks) || [];
   
   const monthStart = startOfMonth(currentDate);
   const monthEnd = endOfMonth(currentDate);

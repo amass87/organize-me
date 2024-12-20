@@ -54,10 +54,11 @@ export default function Dashboard() {
   const handleDragEnd = (event) => {
     const { active, over } = event;
     
-    if (!over) return;
+    if (!over || !tasks) return;  // Add tasks check
 
     if (active.id !== over.id) {
-      if (over.id in tasks.map(t => t.id)) {
+      const taskIds = Array.isArray(tasks) ? tasks.map(t => t.id) : [];  // Safe mapping
+      if (over.id in taskIds) {
         const oldIndex = tasks.findIndex(task => task.id === active.id);
         const newIndex = tasks.findIndex(task => task.id === over.id);
         const newTasks = arrayMove(tasks, oldIndex, newIndex);
@@ -68,20 +69,20 @@ export default function Dashboard() {
     }
   };
 
-  // Filter and sort tasks
-  const sortedTasks = [...tasks].sort((a, b) => {
+  // Initialize with empty arrays if tasks is not iterable
+  const sortedTasks = Array.isArray(tasks) ? [...tasks].sort((a, b) => {
     const dateA = parseISO(a.date);
     const dateB = parseISO(b.date);
     return sortDirection === 'asc' 
       ? dateA.getTime() - dateB.getTime()
       : dateB.getTime() - dateA.getTime();
-  });
+  }) : [];
 
-  const filteredTasks = sortedTasks.filter(task => 
+  const filteredTasks = Array.isArray(sortedTasks) ? sortedTasks.filter(task =>
     showCompletedTasks ? true : task.status !== 'completed'
-  );
+  ) : [];
 
-  const groupedTasks = groupByDate 
+  const groupedTasks = groupByDate && Array.isArray(filteredTasks)
     ? filteredTasks.reduce((groups, task) => {
         const date = task.date;
         if (!groups[date]) {
@@ -90,7 +91,7 @@ export default function Dashboard() {
         groups[date].push(task);
         return groups;
       }, {})
-    : null;
+    : {};
 
   return (
     <DndContext
@@ -169,7 +170,7 @@ export default function Dashboard() {
               ))}
             </div>
           ) : (
-            Object.entries(groupedTasks).map(([date, tasks]) => (
+            Object.entries(groupedTasks || {}).map(([date, tasks]) => (
               <div key={date} className="mb-6">
                 <h3 className="text-sm font-medium text-gray-500 mb-3">
                   {format(parseISO(date), 'MMMM d, yyyy')}

@@ -3,6 +3,18 @@ import { create } from 'zustand';
 
 const API_URL = 'http://192.168.86.240:5000/api';
 
+const fetchWithAuth = async (url, options = {}) => {
+  const token = localStorage.getItem('authToken');
+  return fetch(url, {
+    ...options,
+    headers: {
+      ...options.headers,
+      'Authorization': `Bearer ${token}`,
+      'Content-Type': 'application/json',
+    },
+  });
+};
+
 const usePlannerStore = create((set, get) => ({
   tasks: [],
   loading: false,
