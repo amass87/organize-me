@@ -3,19 +3,16 @@ import { create } from 'zustand';
 
 const API_URL = 'http://192.168.86.240:5000/api';
 
-const fetchWithAuth = async (url, options = {}) => {
+// Helper function to get headers with auth token
+const getAuthHeaders = () => {
   const token = localStorage.getItem('authToken');
-  return fetch(url, {
-    ...options,
-    headers: {
-      ...options.headers,
-      'Authorization': `Bearer ${token}`,
-      'Content-Type': 'application/json',
-    },
-  });
+  return {
+    'Authorization': `Bearer ${token}`,
+    'Content-Type': 'application/json'
+  };
 };
 
-const usePlannerStore = create((set, get) => ({
+const usePlannerStore = create((set) => ({
   tasks: [],
   loading: false,
   error: null,
@@ -23,10 +20,18 @@ const usePlannerStore = create((set, get) => ({
   fetchTasks: async () => {
     set({ loading: true });
     try {
-      const response = await fetch(`${API_URL}/tasks`);
+      const response = await fetch(`${API_URL}/tasks`, {
+        headers: getAuthHeaders()
+      });
+
+      if (!response.ok) {
+        throw new Error('Failed to fetch tasks');
+      }
+
       const data = await response.json();
-      set({ tasks: data, loading: false, error: null });
+      set({ tasks: Array.isArray(data) ? data : [], loading: false, error: null });
     } catch (error) {
+      console.error('Fetch error:', error);
       set({ error: error.message, loading: false });
     }
   },
@@ -36,12 +41,13 @@ const usePlannerStore = create((set, get) => ({
     try {
       const response = await fetch(`${API_URL}/tasks`, {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
+        headers: getAuthHeaders(),
         body: JSON.stringify(task),
       });
+
+      if (!response.ok) throw new Error('Failed to add task');
       const newTask = await response.json();
+      
       set(state => ({
         tasks: [...state.tasks, newTask],
         loading: false,
@@ -54,17 +60,20 @@ const usePlannerStore = create((set, get) => ({
 
   toggleTask: async (taskId) => {
     try {
-      const task = get().tasks.find(t => t.id === taskId);
+      const state = usePlannerStore.getState();
+      const task = state.tasks.find(t => t.id === taskId);
+      
       const response = await fetch(`${API_URL}/tasks/${taskId}`, {
         method: 'PATCH',
-        headers: {
-          'Content-Type': 'application/json',
-        },
+        headers: getAuthHeaders(),
         body: JSON.stringify({
           status: task.status === 'completed' ? 'pending' : 'completed'
         }),
       });
+
+      if (!response.ok) throw new Error('Failed to update task');
       const updatedTask = await response.json();
+      
       set(state => ({
         tasks: state.tasks.map(t => t.id === taskId ? updatedTask : t)
       }));
@@ -75,9 +84,13 @@ const usePlannerStore = create((set, get) => ({
 
   removeTask: async (taskId) => {
     try {
-      await fetch(`${API_URL}/tasks/${taskId}`, {
+      const response = await fetch(`${API_URL}/tasks/${taskId}`, {
         method: 'DELETE',
+        headers: getAuthHeaders(),
       });
+
+      if (!response.ok) throw new Error('Failed to delete task');
+      
       set(state => ({
         tasks: state.tasks.filter(task => task.id !== taskId)
       }));
@@ -90,19 +103,24 @@ const usePlannerStore = create((set, get) => ({
     try {
       const response = await fetch(`${API_URL}/tasks/${taskId}`, {
         method: 'PATCH',
-        headers: {
-          'Content-Type': 'application/json',
-        },
+        headers: getAuthHeaders(),
         body: JSON.stringify(updates),
       });
+
+      if (!response.ok) throw new Error('Failed to update task');
       const updatedTask = await response.json();
+      
       set(state => ({
         tasks: state.tasks.map(t => t.id === taskId ? updatedTask : t)
       }));
     } catch (error) {
       set({ error: error.message });
     }
-  }
+  },
+
+  reorderTasks: async (newTasks) => {
+    set({ tasks: newTasks });
+  },
 }));
 
 export default usePlannerStore;
