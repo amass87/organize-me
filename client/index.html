@@ -2,25 +2,28 @@
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
-    <link rel="icon" type="image/svg+xml" href="/vite.svg" />
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Planner App</title>
-    <!-- Add this script at the very top -->
     <script>
-      window.addEventListener('load', function() {
-        const userStyleElement = document.querySelector('userStyle');
-        if (userStyleElement) {
-          userStyleElement.register = function() {};
-          userStyleElement.onreset = null;
-          userStyleElement.addEventListener('reset', function(e) {
-            e.preventDefault();
-            return false;
-          });
+      // Define userStyle handler globally
+      window.userStyleHandler = {
+        register: function() { return null; },
+        onreset: function() { return false; },
+        style: 'Normal'
+      };
+      
+      // Prevent reset events
+      document.addEventListener('DOMContentLoaded', function() {
+        const userStyle = document.querySelector('userStyle');
+        if (userStyle) {
+          userStyle.register = function() { return null; };
+          userStyle.onreset = function() { return false; };
         }
-      });
+      }, { once: true });
     </script>
   </head>
-  <body>
+  <body onreset="return false;">
     <div id="root"></div>
     <script type="module" src="/src/main.jsx"></script>
   </body>

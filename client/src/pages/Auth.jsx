@@ -13,7 +13,7 @@ export default function Auth() {
   const navigate = useNavigate();
 
   const handleSubmit = async (e) => {
-    e.preventDefault(); // Prevent default form behavior
+    e.preventDefault();
     setError('');
 
     const endpoint = isLogin ? '/api/auth/login' : '/api/auth/register';
@@ -42,10 +42,9 @@ export default function Auth() {
   };
 
   const handleChange = (e) => {
-    const { name, value } = e.target;
     setFormData(prev => ({
       ...prev,
-      [name]: value
+      [e.target.name]: e.target.value
     }));
   };
 
@@ -64,51 +63,54 @@ export default function Auth() {
           </div>
         )}
 
-        <form onSubmit={handleSubmit} className="mt-8 space-y-6">
+        <form onSubmit={handleSubmit} className="mt-8 space-y-6" autoComplete="off">
           {!isLogin && (
             <div>
-              <label htmlFor="name" className="block text-sm font-medium text-gray-700">
+              <label htmlFor="register-name" className="block text-sm font-medium text-gray-700">
                 Name
               </label>
               <input
-                id="name"
+                id="register-name"
                 name="name"
                 type="text"
                 required={!isLogin}
                 value={formData.name}
                 onChange={handleChange}
                 className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
+                autoComplete="off"
               />
             </div>
           )}
 
           <div>
-            <label htmlFor="email" className="block text-sm font-medium text-gray-700">
+            <label htmlFor="register-email" className="block text-sm font-medium text-gray-700">
               Email address
             </label>
             <input
-              id="email"
+              id="register-email"
               name="email"
               type="email"
               required
               value={formData.email}
               onChange={handleChange}
               className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
+              autoComplete="off"
             />
           </div>
 
           <div>
-            <label htmlFor="password" className="block text-sm font-medium text-gray-700">
+            <label htmlFor="register-password" className="block text-sm font-medium text-gray-700">
               Password
             </label>
             <input
-              id="password"
+              id="register-password"
               name="password"
               type="password"
               required
               value={formData.password}
               onChange={handleChange}
               className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
+              autoComplete="new-password"
             />
           </div>
 
@@ -124,9 +126,9 @@ export default function Auth() {
 
         <div className="text-center">
           <button
-            type="button"
             onClick={() => setIsLogin(!isLogin)}
             className="text-sm text-blue-600 hover:text-blue-500"
+            type="button"
           >
             {isLogin 
               ? "Don't have an account? Register" 

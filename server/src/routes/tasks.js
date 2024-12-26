@@ -2,12 +2,8 @@
 const express = require('express');
 const router = express.Router();
 const db = require('../config/database');
-const auth = require('../middleware/auth');
 
-// Apply auth middleware to all routes in this router
-router.use(auth);
-
-// Get all tasks (only for authenticated user)
+// Get all tasks for authenticated user
 router.get('/', async (req, res) => {
   try {
     const { rows } = await db.query(
@@ -44,13 +40,13 @@ router.post('/', async (req, res) => {
   }
 });
 
-// Update a task (only if it belongs to the user)
+// Update a task
 router.patch('/:id', async (req, res) => {
   try {
     const { id } = req.params;
     const updates = req.body;
 
-    // First check if task belongs to user
+    // Check if task belongs to user
     const taskCheck = await db.query(
       'SELECT * FROM tasks WHERE id = $1 AND user_id = $2',
       [id, req.user.userId]
@@ -68,7 +64,9 @@ router.patch('/:id', async (req, res) => {
       UPDATE tasks 
       SET ${setClause}
       WHERE id = $${Object.keys(updates).length + 1} AND user_id = $${Object.keys(updates).length + 2}
-      RETURNING *
+      RETURNING id, user_id, title, status, priority, 
+                to_char(date, 'YYYY-MM-DD') as date,
+                created_at, updated_at
     `;
     
     const values = [...Object.values(updates), id, req.user.userId];
@@ -79,7 +77,7 @@ router.patch('/:id', async (req, res) => {
   }
 });
 
-// Delete a task (only if it belongs to the user)
+// Delete a task
 router.delete('/:id', async (req, res) => {
   try {
     const { id } = req.params;

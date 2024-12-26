@@ -6,13 +6,6 @@ import CalendarPage from './pages/Calendar';
 import Settings from './pages/Settings';
 import Auth from './pages/Auth';
 
-// Add event handler to prevent reset
-document.addEventListener('reset', (e) => {
-  e.preventDefault();
-  e.stopPropagation();
-}, true);
-
-// Protected Route component
 const ProtectedRoute = ({ children }) => {
   const token = localStorage.getItem('authToken');
   if (!token) {
@@ -22,9 +15,14 @@ const ProtectedRoute = ({ children }) => {
 };
 
 export default function App() {
+  const handleReset = (e) => {
+    e.preventDefault();
+    return false;
+  };
+
   return (
     <BrowserRouter>
-      <div onReset={(e) => e.preventDefault()}>  {/* Add onReset handler */}
+      <div onReset={handleReset}>
         <Routes>
           <Route path="/auth" element={<Auth />} />
           <Route element={
