@@ -9,8 +9,8 @@ function DroppableDay({ day, tasks = [], onDateSelect, isSelected }) {
     id: format(day, 'yyyy-MM-dd'),
   });
 
-  const formattedDate = format(day, 'yyyy-MM-dd');
-  const dayTasks = Array.isArray(tasks) ? tasks.filter(task => task.date === formattedDate) : [];
+  // Only show tasks for this specific day
+  const dayTasks = tasks.filter(task => task.date === format(day, 'yyyy-MM-dd'));
 
   return (
     <div
@@ -31,8 +31,9 @@ function DroppableDay({ day, tasks = [], onDateSelect, isSelected }) {
           <div
             key={task.id}
             className={`
-              text-xs p-1 rounded border text-gray-900
+              text-xs p-1 rounded border
               ${task.status === 'completed' ? 'bg-green-50 border-green-200' : 'bg-gray-50 border-gray-200'}
+              text-gray-900
             `}
             title={task.title}
           >
