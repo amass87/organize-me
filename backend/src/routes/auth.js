@@ -43,19 +43,16 @@ router.post('/login', async (req, res) => {
   try {
     const { email, password } = req.body;
 
-    // Check user exists
     const { rows } = await db.query('SELECT * FROM users WHERE email = $1', [email]);
     if (rows.length === 0) {
       return res.status(401).json({ error: 'Invalid credentials' });
     }
 
-    // Verify password
     const validPassword = await bcrypt.compare(password, rows[0].password_hash);
     if (!validPassword) {
       return res.status(401).json({ error: 'Invalid credentials' });
     }
 
-    // Create token
     const token = jwt.sign(
       { userId: rows[0].id },
       process.env.JWT_SECRET,
