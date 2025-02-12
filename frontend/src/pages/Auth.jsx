@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import useAuthStore from '../store/authStore';
-import { LoadingSpinner, ErrorAlert } from '../components/ui/LoadingSpinner';
+import { LoadingSpinner, Alert } from '../components/ui/feedback';
 
 export default function Auth() {
   const [isLogin, setIsLogin] = useState(true);
@@ -38,7 +38,7 @@ export default function Auth() {
           </h2>
         </div>
 
-        {error && <ErrorAlert message={error} />}
+        {error && <Alert message={error} />}
 
         <form className="mt-8 space-y-6" onSubmit={handleSubmit}>
           {!isLogin && (
