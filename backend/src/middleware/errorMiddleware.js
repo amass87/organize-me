@@ -1,5 +1,4 @@
-// src/middleware/errorMiddleware.js
-const logger = require('../utils/logger');
+import logger from '../utils/logger.js';
 
 class AppError extends Error {
   constructor(message, statusCode) {
@@ -7,7 +6,6 @@ class AppError extends Error {
     this.statusCode = statusCode;
     this.status = `${statusCode}`.startsWith('4') ? 'fail' : 'error';
     this.isOperational = true;
-
     Error.captureStackTrace(this, this.constructor);
   }
 }
@@ -20,7 +18,6 @@ const notFound = (req, res, next) => {
 const errorHandler = (err, req, res, next) => {
   const statusCode = err.statusCode || 500;
   const status = err.status || 'error';
-
   // Log error
   if (statusCode === 500) {
     logger.error('Error:', {
@@ -30,7 +27,6 @@ const errorHandler = (err, req, res, next) => {
       method: req.method
     });
   }
-
   // Send error response
   res.status(statusCode).json({
     status,
@@ -40,8 +36,4 @@ const errorHandler = (err, req, res, next) => {
   });
 };
 
-module.exports = {
-  AppError,
-  notFound,
-  errorHandler
-};
+export { AppError, notFound, errorHandler };

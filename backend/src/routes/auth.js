@@ -1,13 +1,12 @@
-// src/routes/auth.js
-const express = require('express');
+import express from 'express';
 const router = express.Router();
-const bcrypt = require('bcryptjs');
-const jwt = require('jsonwebtoken');
-const { body, validationResult } = require('express-validator');
-const { auth, refreshAuth, TOKEN_TYPES } = require('../middleware/auth');
-const { AppError } = require('../middleware/errorMiddleware');
-const db = require('../config/database');
-const logger = require('../utils/logger');
+import bcrypt from 'bcryptjs';
+import jwt from 'jsonwebtoken';
+import { body, validationResult } from 'express-validator';
+import { auth, refreshAuth, TOKEN_TYPES } from '../middleware/auth.js';
+import { AppError } from '../middleware/errorMiddleware.js';
+import db from '../config/database.js';
+import logger from '../utils/logger.js';
 
 // Validation middlewares
 const registerValidation = [
@@ -198,4 +197,10 @@ router.get('/me', auth(), async (req, res, next) => {
   }
 });
 
-module.exports = router;
+// Example route
+router.get('/test', (req, res) => {
+    res.send('Auth route working');
+});
+
+
+export default router;

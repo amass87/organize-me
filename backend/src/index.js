@@ -1,15 +1,15 @@
 // src/index.js
-require('dotenv').config();
-const express = require('express');
-const cors = require('cors');
-const helmet = require('helmet');
-const rateLimit = require('express-rate-limit');
-const { errorHandler, notFound } = require('./middleware/errorMiddleware');
-const authRoutes = require('./routes/auth');
-const taskRoutes = require('./routes/tasks');
-const auth = require('./middleware/auth');
-const logger = require('./utils/logger');
-const { connectDB } = require('./config/db');
+import 'dotenv/config';
+import express from 'express';
+import cors from 'cors';
+import helmet from 'helmet';
+import rateLimit from 'express-rate-limit';
+import { errorHandler, notFound } from './middleware/errorMiddleware.js';
+import authRoutes from './routes/auth.js';
+import taskRoutes from './routes/tasks.js';
+import { auth } from './middleware/auth.js';
+import logger from './utils/logger.js';
+import { healthCheck } from './config/database.js';
 
 const app = express();
 
@@ -42,7 +42,7 @@ app.get('/health', (req, res) => {
 
 // API Routes
 app.use('/api/auth', authRoutes);
-app.use('/api/tasks', auth, taskRoutes);
+app.use('/api/tasks', auth(), taskRoutes);
 
 // Error Handling
 app.use(notFound);
@@ -53,7 +53,11 @@ const PORT = process.env.PORT || 5000;
 
 async function startServer() {
   try {
-    await connectDB();
+    // Check database connection
+    const dbStatus = await healthCheck();
+    if (dbStatus.status !== 'healthy') {
+      throw new Error('Database connection failed');
+    }
     logger.info('Database connected successfully');
 
     app.listen(PORT, () => {

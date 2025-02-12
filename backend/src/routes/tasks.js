@@ -1,9 +1,9 @@
 // src/routes/tasks.js
-const express = require('express');
+import express from 'express';
 const router = express.Router();
-const { body, param, query, validationResult } = require('express-validator');
-const { AppError } = require('../middleware/errorMiddleware');
-const db = require('../config/database');
+import { body, param, query, validationResult } from 'express-validator';
+import { AppError } from '../middleware/errorMiddleware.js';
+import db from '../config/database.js';
 
 // Validation middlewares
 const taskValidation = [
@@ -252,4 +252,4 @@ router.post('/bulk-update',
   }
 );
 
-module.exports = router;
+export default router;

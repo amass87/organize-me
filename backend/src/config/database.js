@@ -1,6 +1,7 @@
 // src/config/database.js
-const { Pool } = require('pg');
-const logger = require('../utils/logger');
+import pkg from 'pg';
+const { Pool } = pkg;
+import logger from '../utils/logger.js';
 
 // Database configuration
 const dbConfig = {
@@ -113,7 +114,17 @@ async function close() {
   }
 }
 
-module.exports = {
+// Named export
+export {
+  query,
+  transaction,
+  healthCheck,
+  close,
+  pool // Exported for direct access if needed
+};
+
+// Default export
+export default {
   query,
   transaction,
   healthCheck,

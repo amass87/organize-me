@@ -1,7 +1,7 @@
 // src/middleware/auth.js
-const jwt = require('jsonwebtoken');
-const { AppError } = require('./errorMiddleware');
-const logger = require('../utils/logger');
+import jwt from 'jsonwebtoken';
+import { AppError } from './errorMiddleware.js';
+import logger from '../utils/logger.js';
 
 const TOKEN_TYPES = {
   ACCESS: 'access',
@@ -120,7 +120,16 @@ const refreshAuth = async (req, res, next) => {
   }
 };
 
-module.exports = {
+// Named export
+export {
+  auth,
+  authorize,
+  refreshAuth,
+  TOKEN_TYPES
+};
+
+// Default export
+export default {
   auth,
   authorize,
   refreshAuth,
