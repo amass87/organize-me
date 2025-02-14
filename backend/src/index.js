@@ -25,6 +25,7 @@ const limiter = rateLimit({
   windowMs: 15 * 60 * 1000, // 15 minutes
   max: 100 // limit each IP to 100 requests per windowMs
 });
+
 app.use('/api/', limiter);
 
 // Body parsing Middleware
@@ -33,7 +34,7 @@ app.use(express.urlencoded({ extended: true }));
 
 // Health Check
 app.get('/health', (req, res) => {
-  res.status(200).json({ 
+  res.status(200).json({
     status: 'healthy',
     timestamp: new Date(),
     uptime: process.uptime()
@@ -59,7 +60,7 @@ async function startServer() {
       throw new Error('Database connection failed');
     }
     logger.info('Database connected successfully');
-
+    
     app.listen(PORT, () => {
       logger.info(`Server running in ${process.env.NODE_ENV} mode on port ${PORT}`);
     });
@@ -82,4 +83,10 @@ process.on('uncaughtException', (err) => {
   process.exit(1);
 });
 
-startServer();
+// Export app for testing
+export { app };
+
+// Start server only if not in test mode
+if (process.env.NODE_ENV !== 'test') {
+  startServer();
+}

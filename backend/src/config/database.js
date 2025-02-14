@@ -120,8 +120,8 @@ export {
   transaction,
   healthCheck,
   close,
-  pool // Exported for direct access if needed
-};
+  pool
+}
 
 // Default export
 export default {
